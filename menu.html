@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AR Menu</title>
+
+<script type="module"
+  src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
+</script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fafafa;
+  text-align: center;
+}
+
+header {
+  background: #111;
+  color: white;
+  padding: 15px;
+}
+
+.categories button {
+  margin: 6px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  background: #eee;
+}
+
+.categories button.active {
+  background: #111;
+  color: white;
+}
+
+.info {
+  margin: 10px;
+  font-size: 18px;
+}
+
+.price {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+model-viewer {
+  width: 100%;
+  height: 65vh;
+}
+
+.controls button {
+  padding: 12px 20px;
+  margin: 5px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h2>🍽️ AR Menu</h2>
+  <p>Scan • View • Choose</p>
+</header>
+
+<div class="categories">
+  <button onclick="setCategory('plates')" class="active">Plates</button>
+  <button onclick="setCategory('desserts')">Desserts</button>
+  <button onclick="setCategory('drinks')">Drinks</button>
+</div>
+
+<div class="info">
+  <div id="dishName"></div>
+  <div class="price" id="dishPrice"></div>
+</div>
+
+<model-viewer
+  id="viewer"
+  ar
+  ar-modes="quick-look webxr scene-viewer"
+  camera-controls
+  auto-rotate>
+</model-viewer>
+
+<div class="controls">
+  <button onclick="prevDish()">⬅</button>
+  <button onclick="nextDish()">➡</button>
+</div>
+
+<script>
+const menu = {
+  plates: [
+    {name:"Pizza", price:"€8.50", model:"models/pizza.glb"},
+    {name:"Burger", price:"€9.00", model:"models/burger.glb"},
+    {name:"Steak", price:"€14.00", model:"models/steak.glb"},
+    {name:"Salad", price:"€7.00", model:"models/salad.glb"}
+  ],
+  desserts: [
+    {name:"Cake", price:"€4.50", model:"models/cake.glb"},
+    {name:"Dessert", price:"€5.00", model:"models/dessert.glb"}
+  ],
+  drinks: [
+    {name:"Coffee", price:"€2.00", model:"models/coffee.glb"},
+    {name:"Juice", price:"€3.00", model:"models/juice.glb"},
+    {name:"Soda", price:"€2.50", model:"models/soda.glb"},
+    {name:"Water", price:"€1.50", model:"models/water.glb"}
+  ]
+};
+
+let category = "plates";
+let index = 0;
+const viewer = document.getElementById("viewer");
+
+function loadDish() {
+  const dish = menu[category][index];
+  viewer.src = dish.model;
+  document.getElementById("dishName").innerText = dish.name;
+  document.getElementById("dishPrice").innerText = dish.price;
+}
+
+function nextDish() {
+  index = (index + 1) % menu[category].length;
+  loadDish();
+}
+
+function prevDish() {
+  index = (index - 1 + menu[category].length) % menu[category].length;
+  loadDish();
+}
+
+function setCategory(cat) {
+  category = cat;
+  index = 0;
+  document.querySelectorAll(".categories button")
+    .forEach(b => b.classList.remove("active"));
+  event.target.classList.add("active");
+  loadDish();
+}
+
+let startX = 0;
+viewer.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+viewer.addEventListener("touchend", e => {
+  let endX = e.changedTouches[0].clientX;
+  if (startX - endX > 50) nextDish();
+  if (endX - startX > 50) prevDish();
+});
+
+loadDish();
+</script>
+
+</body>
+</html>
